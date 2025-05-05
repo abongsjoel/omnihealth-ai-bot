@@ -21,16 +21,11 @@ app.use(
 console.log("got here");
 
 app.post("/ai", async (req, res) => {
-  console.log("User message:", req.body.message);
-  console.log("History:", req.body.history);
-
   const userMessage = req.body.message;
   const history = req.body.history;
-  console.log({ history });
 
   const historyArray =
     typeof history === "string" && history !== "" ? JSON.parse(history) : "";
-  console.log({ historyArray });
 
   let messages =
     Array.isArray(historyArray) && historyArray.length > 0
@@ -46,8 +41,6 @@ app.post("/ai", async (req, res) => {
     }
     messages.push({ role: "user", content: userMessage });
   }
-
-  console.log({ messages });
 
   try {
     // const openaiRes = await axios.post(
