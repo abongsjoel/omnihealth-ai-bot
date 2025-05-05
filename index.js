@@ -10,7 +10,7 @@ console.log("got here");
 app.post("/ai", async (req, res) => {
   console.log({ req });
   const userMessage = req.body.message;
-  const history = json.parse(req.body.history);
+  const history = req.body.history !== "" ? JSON.parse(req.body.history) : "";
 
   let messages =
     Array.isArray(history) && history.length > 0
