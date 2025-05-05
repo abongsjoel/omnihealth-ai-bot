@@ -8,17 +8,20 @@ app.use(express.json());
 console.log("got here");
 
 app.post("/ai", async (req, res) => {
+  console.log({ req });
   const userMessage = req.body.message;
-  let messages = req.body.history;
+  const history = req.body.history;
+
+  let messages =
+    Array.isArray(history) && history.length > 0
+      ? [...req.body.history]
+      : [{ role: "system", content: "You are a helpful health assistant." }];
+
+  messages.push({ role: "user", content: userMessage });
 
   if (!userMessage || typeof userMessage !== "string") {
     return res.status(400).json({ reply: "Invalid input." });
   } else {
-    if (!messages || messages.length === 0 || messages === "") {
-      messages = [
-        { role: "system", content: "You are a helpful health assistant." },
-      ];
-    }
     messages.push({ role: "user", content: userMessage });
   }
 
