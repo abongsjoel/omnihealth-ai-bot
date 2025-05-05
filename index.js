@@ -1,12 +1,12 @@
 const express = require("express");
 const axios = require("axios");
 require("dotenv").config();
+
 const app = express();
 app.use(express.json());
 
 app.post("/ai", async (req, res) => {
   const userMessage = req.body.message;
-  console.log("Incoming message:", userMessage);
 
   if (!userMessage || typeof userMessage !== "string") {
     return res.status(400).json({ reply: "Invalid input." });
