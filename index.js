@@ -1,9 +1,22 @@
 const express = require("express");
 const axios = require("axios");
+const helmet = require("helmet");
+
 require("dotenv").config();
 
 const app = express();
 app.use(express.json());
+
+app.use(
+  helmet.contentSecurityPolicy({
+    useDefaults: true,
+    directives: {
+      // Allow loading stylesheets from Google Fonts
+      "style-src-elem": ["'self'", "https://fonts.googleapis.com"],
+      "font-src": ["'self'", "https://fonts.gstatic.com"],
+    },
+  })
+);
 
 console.log("got here");
 
@@ -12,20 +25,25 @@ app.post("/ai", async (req, res) => {
   console.log("History:", req.body.history);
 
   const userMessage = req.body.message;
-  const history = req.body.history !== "" ? JSON.parse(req.body.history) : "";
+  const history = req.body.history;
+  console.log({ history });
+
+  const historyArray =
+    typeof history === "string" && history !== "" ? JSON.parse(history) : "";
+  console.log({ historyArray });
 
   let messages =
-    Array.isArray(history) && history.length > 0
-      ? [...req.body.history]
+    Array.isArray(historyArray) && historyArray.length > 0
+      ? [...historyArray]
       : [{ role: "system", content: "You are a helpful health assistant." }];
-
-  messages.push({ role: "user", content: userMessage });
 
   if (!userMessage || typeof userMessage !== "string") {
     return res.status(400).json({ reply: "Invalid input." });
   } else {
     messages.push({ role: "user", content: userMessage });
   }
+
+  console.log({ messages });
 
   try {
     // const openaiRes = await axios.post(
