@@ -30,7 +30,7 @@ app.post("/ai", async (req, res) => {
     const openaiRes = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "openai/gpt-3.5-turbo", // or "openai/gpt-4", "anthropic/claude-3-opus", etc.
+        model: "openai/gpt-4", // or "openai/gpt-3.5-turbo", "openai/gpt-4", "anthropic/claude-3-opus", etc.
         messages: [
           { role: "system", content: "You are a helpful health assistant." },
           { role: "user", content: userMessage },
