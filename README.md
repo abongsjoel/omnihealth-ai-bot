@@ -1,6 +1,6 @@
 # OmniHealth AI Bot
 
-OmniHealth AI Bot is a Node.js-based chatbot application designed to provide helpful health-related assistance. It leverages OpenRouter's API to interact with advanced AI models like OpenAI's GPT-4.
+OmniHealth AI Bot is a Node.js-based chatbot application designed to provide helpful health-related assistance. It leverages OpenRouter's API to interact with advanced AI models like OpenAI's GPT-3.5-turbo or GPT-4.
 
 ## Features
 
