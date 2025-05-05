@@ -40,6 +40,10 @@ app.post("/ai", async (req, res) => {
   if (!userMessage || typeof userMessage !== "string") {
     return res.status(400).json({ reply: "Invalid input." });
   } else {
+    const messagesLength = messages.length;
+    if (messagesLength > 10) {
+      messages.splice(1, messagesLength - 10 < 2 ? 2 : messagesLength - 10);
+    }
     messages.push({ role: "user", content: userMessage });
   }
 
