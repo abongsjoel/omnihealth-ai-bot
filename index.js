@@ -5,11 +5,21 @@ require("dotenv").config();
 const app = express();
 app.use(express.json());
 
+console.log("got here");
+
 app.post("/ai", async (req, res) => {
   const userMessage = req.body.message;
+  let messages = req.body.history;
 
   if (!userMessage || typeof userMessage !== "string") {
     return res.status(400).json({ reply: "Invalid input." });
+  } else {
+    if (!messages || messages.length === 0 || messages === "") {
+      messages = [
+        { role: "system", content: "You are a helpful health assistant." },
+      ];
+    }
+    messages.push({ role: "user", content: userMessage });
   }
 
   try {
@@ -35,6 +45,7 @@ app.post("/ai", async (req, res) => {
           { role: "system", content: "You are a helpful health assistant." },
           { role: "user", content: userMessage },
         ],
+        messages,
       },
       {
         headers: {
@@ -49,7 +60,16 @@ app.post("/ai", async (req, res) => {
     // const reply = openaiRes.data.choices[0].message.content;
     const reply = openaiRes.data.choices[0].message.content;
 
-    return res.json({ reply });
+    messages.push({ role: "assistant", content: reply });
+
+    const response = {
+      reply,
+      previous_responses: messages,
+    };
+
+    console.log({ response });
+
+    return res.json({ response });
   } catch (err) {
     console.error("OpenAI error:", err.response?.data || err.message);
     return res.status(500).json({ reply: "Sorry, something went wrong." });
