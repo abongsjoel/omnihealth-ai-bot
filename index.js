@@ -8,7 +8,9 @@ app.use(express.json());
 console.log("got here");
 
 app.post("/ai", async (req, res) => {
-  console.log({ req });
+  console.log("User message:", req.body.message);
+  console.log("History:", req.body.history);
+
   const userMessage = req.body.message;
   const history = req.body.history !== "" ? JSON.parse(req.body.history) : "";
 
