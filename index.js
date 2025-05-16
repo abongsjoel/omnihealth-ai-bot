@@ -11,7 +11,6 @@ app.use(
   helmet.contentSecurityPolicy({
     useDefaults: true,
     directives: {
-      // Allow loading stylesheets from Google Fonts
       "style-src-elem": ["'self'", "https://fonts.googleapis.com"],
       "font-src": ["'self'", "https://fonts.gstatic.com"],
     },
