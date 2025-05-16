@@ -48,18 +48,16 @@ function saveMessage(userId, role, content) {
 app.post("/ai", async (req, res) => {
   const userId = req.body.userId || "anonymous";
   const userMessage = req.body.message;
-  console.log({ userId, userMessage });
+  console.log({ userId, userMessage, reqbody: req.body });
 
   if (!userMessage || typeof userMessage !== "string") {
     return res.status(400).json({ reply: "Invalid input." });
   }
 
   const messages = getChatHistory(userId, userMessage);
-  console.log({ messages });
   saveMessage(userId, "user", userMessage);
 
   try {
-    console.log("within try", { messages });
     const openaiRes = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
@@ -84,7 +82,6 @@ app.post("/ai", async (req, res) => {
       previous_responses: messageLog[userId],
     };
 
-    console.log({ response });
     console.log({ messageLog });
 
     return res.json({ response });
