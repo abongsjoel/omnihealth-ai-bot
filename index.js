@@ -18,8 +18,6 @@ app.use(
   })
 );
 
-console.log("got here");
-
 app.post("/ai", async (req, res) => {
   const userMessage = req.body.message;
   const history = req.body.history;
