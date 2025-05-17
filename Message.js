@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const MessageSchema = new mongoose.Schema({
   userId: String,
-  message: String,
+  content: String,
   role: { type: String, enum: ["user", "assistant"] },
   timestamp: { type: Date, default: Date.now },
 });

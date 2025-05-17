@@ -29,20 +29,30 @@ app.post("/ai", async (req, res) => {
     return res.status(400).json({ reply: "Invalid input." });
   }
 
+  const curUserMessage = { role: "user", content: userMessage };
+
   // Create database entry with user message
-  await Message.create({ userId, message: userMessage, role: "user" });
+  await Message.create({ userId, ...curUserMessage });
 
   // Fetch chat history from DB
   const history = await Message.find({ userId })
-    .sort({ timestamp: 1 })
-    .select("role message -_id");
+    .sort({ timestamp: -1 })
+    .limit(20)
+    .select("role content -_id");
+
+  const orderedHistory = history.reverse();
 
   const messages = [
     { role: "system", content: "You are a helpful health assistant." },
-    ...history.map((msg) => ({
-      role: msg.role,
-      content: msg.message,
-    })),
+    ...orderedHistory
+      .filter(
+        (msg) => typeof msg.content === "string" && msg.content.trim() !== ""
+      )
+      .map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+    curUserMessage,
   ];
 
   try {
@@ -64,10 +74,8 @@ app.post("/ai", async (req, res) => {
 
     const reply = openaiRes.data.choices[0].message.content;
 
-    console.log({ messages, reply });
-
     // Create database entry with assistant's response
-    await Message.create({ userId, message: reply, role: "assistant" });
+    await Message.create({ userId, content: reply, role: "assistant" });
 
     return res.json({ reply });
   } catch (err) {
