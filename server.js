@@ -1,6 +1,7 @@
 const express = require("express");
 const axios = require("axios");
 const helmet = require("helmet");
+const cors = require("cors");
 require("dotenv").config();
 
 const connectDB = require("./db");
@@ -8,10 +9,10 @@ const Message = require("./models/Message");
 const messageRoutes = require("./routes/messages");
 
 const app = express();
-app.use(express.json());
-app.use("/api", messageRoutes);
 connectDB();
 
+app.use(express.json());
+app.use("/api", messageRoutes);
 app.use(
   helmet.contentSecurityPolicy({
     useDefaults: true,
@@ -19,6 +20,18 @@ app.use(
       "style-src-elem": ["'self'", "https://fonts.googleapis.com"],
       "font-src": ["'self'", "https://fonts.gstatic.com"],
     },
+  })
+);
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  // "https://yourfrontend.vercel.app"
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
   })
 );
 
