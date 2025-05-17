@@ -3,8 +3,12 @@ const axios = require("axios");
 const helmet = require("helmet");
 require("dotenv").config();
 
+const connectDB = require("./db");
+const Message = require("./Message");
+
 const app = express();
 app.use(express.json());
+connectDB();
 
 app.use(
   helmet.contentSecurityPolicy({
@@ -50,6 +54,8 @@ app.post("/ai", async (req, res) => {
   const userMessage = req.body.message;
   console.log({ userId, userMessage, reqbody: req.body });
 
+  await Message.create({ userId, message: userMessage, role: "user" });
+
   if (!userMessage || typeof userMessage !== "string") {
     return res.status(400).json({ reply: "Invalid input." });
   }
@@ -83,6 +89,8 @@ app.post("/ai", async (req, res) => {
     };
 
     console.log({ messageLog });
+
+    await Message.create({ userId, message: reply, role: "assistant" });
 
     return res.json({ response });
 
