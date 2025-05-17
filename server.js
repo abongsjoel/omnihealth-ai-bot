@@ -5,9 +5,11 @@ require("dotenv").config();
 
 const connectDB = require("./db");
 const Message = require("./models/Message");
+const messageRoutes = require("./routes/messages");
 
 const app = express();
 app.use(express.json());
+app.use("/api", messageRoutes);
 connectDB();
 
 app.use(
