@@ -4,7 +4,7 @@ const helmet = require("helmet");
 require("dotenv").config();
 
 const connectDB = require("./db");
-const Message = require("./Message");
+const Message = require("./models/Message");
 
 const app = express();
 app.use(express.json());
