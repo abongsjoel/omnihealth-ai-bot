@@ -20,48 +20,30 @@ app.use(
   })
 );
 
-// Simulate basic in-memory message log (replace with DB in production)
-const messageLog = {}; // { userId: [messages] }
-console.log({ messageLog });
-
-function getChatHistory(userId, userMessage) {
-  return (
-    messageLog[userId] || [
-      { role: "system", content: "You are a helpful health assistant." },
-      { role: "user", content: userMessage },
-    ]
-  );
-}
-
-function saveMessage(userId, role, content) {
-  if (!messageLog[userId]) {
-    messageLog[userId] = [
-      { role: "system", content: "You are a helpful health assistant." },
-    ];
-  }
-  messageLog[userId].push({ role, content });
-  // Trim to last 10 messages
-  if (messageLog[userId].length > 12) {
-    messageLog[userId] = [
-      messageLog[userId][0],
-      ...messageLog[userId].slice(-10),
-    ];
-  }
-}
-
 app.post("/ai", async (req, res) => {
   const userId = req.body.userId || "anonymous";
   const userMessage = req.body.message;
-  console.log({ userId, userMessage, reqbody: req.body });
-
-  await Message.create({ userId, message: userMessage, role: "user" });
+  console.log({ userId, userMessage });
 
   if (!userMessage || typeof userMessage !== "string") {
     return res.status(400).json({ reply: "Invalid input." });
   }
 
-  const messages = getChatHistory(userId, userMessage);
-  saveMessage(userId, "user", userMessage);
+  // Create database entry with user message
+  await Message.create({ userId, message: userMessage, role: "user" });
+
+  // Fetch chat history from DB
+  const history = await Message.find({ userId })
+    .sort({ timestamp: 1 })
+    .select("role message -_id");
+
+  const messages = [
+    { role: "system", content: "You are a helpful health assistant." },
+    ...history.map((msg) => ({
+      role: msg.role,
+      content: msg.message,
+    })),
+  ];
 
   try {
     const openaiRes = await axios.post(
@@ -81,20 +63,13 @@ app.post("/ai", async (req, res) => {
     );
 
     const reply = openaiRes.data.choices[0].message.content;
-    saveMessage(userId, "assistant", reply);
 
-    const response = {
-      reply,
-      previous_responses: messageLog[userId],
-    };
+    console.log({ messages, reply });
 
-    console.log({ messageLog });
-
+    // Create database entry with assistant's response
     await Message.create({ userId, message: reply, role: "assistant" });
 
-    return res.json({ response });
-
-    // return res.json({ reply, history: messageLog[userId] });
+    return res.json({ reply });
   } catch (err) {
     console.error("OpenAI error:", err.response?.data || err.message);
     return res.status(500).json({ reply: "Sorry, something went wrong." });
