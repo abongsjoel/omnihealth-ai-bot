@@ -11,18 +11,6 @@ const messageRoutes = require("./routes/messages");
 const app = express();
 connectDB();
 
-app.use(express.json());
-app.use("/api", messageRoutes);
-app.use(
-  helmet.contentSecurityPolicy({
-    useDefaults: true,
-    directives: {
-      "style-src-elem": ["'self'", "https://fonts.googleapis.com"],
-      "font-src": ["'self'", "https://fonts.gstatic.com"],
-    },
-  })
-);
-
 const allowedOrigins = [
   "http://localhost:5173",
   // "https://yourfrontend.vercel.app"
@@ -32,6 +20,18 @@ app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
+  })
+);
+
+app.use(express.json());
+app.use("/api", messageRoutes);
+app.use(
+  helmet.contentSecurityPolicy({
+    useDefaults: true,
+    directives: {
+      "style-src-elem": ["'self'", "https://fonts.googleapis.com"],
+      "font-src": ["'self'", "https://fonts.gstatic.com"],
+    },
   })
 );
 
