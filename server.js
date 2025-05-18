@@ -13,7 +13,7 @@ connectDB();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://omnihealth-dashboard.vercel.app/",
+  "https://omnihealth-dashboard.vercel.app",
 ];
 
 app.use(
