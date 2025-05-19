@@ -6,9 +6,9 @@ const Message = require("../models/Message");
 const router = express.Router();
 
 // GET /api/users
-router.get("/users", async (req, res) => {
-  const users = await Message.distinct("userId");
-  res.json(users);
+router.get("/user-ids", async (req, res) => {
+  const userIds = await Message.distinct("userId");
+  res.json(userIds);
 });
 
 router.get("/messages/:userId", async (req, res) => {
@@ -28,7 +28,6 @@ router.post("/send-message", async (req, res) => {
 
   try {
     // 1. Send to Infobip
-
     await axios.post(
       `${process.env.INFOBIP_BASE_URL}/whatsapp/1/message/text`,
       {
