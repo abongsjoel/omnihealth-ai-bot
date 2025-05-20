@@ -8,6 +8,7 @@ const connectDB = require("./db");
 const Message = require("./models/Message");
 const messageRoutes = require("./routes/messages");
 const userRoutes = require("./routes/users");
+const surveyRoutes = require("./routes/survey");
 
 const app = express();
 connectDB();
@@ -27,6 +28,7 @@ app.use(
 app.use(express.json());
 app.use("/api", messageRoutes);
 app.use("/api", userRoutes);
+app.use("/api", surveyRoutes);
 app.use(
   helmet.contentSecurityPolicy({
     useDefaults: true,
@@ -83,25 +85,25 @@ app.post("/ai", async (req, res) => {
   // }
 });
 
-app.post("/test", async (req, res) => {
-  console.log("🚨 Received Test:", JSON.stringify(req.body, null, 2));
+// app.post("/chat", async (req, res) => {
+//   console.log("🚨 Received Test:", JSON.stringify(req.body, null, 2));
 
-  const userId = req.body.userId || "anonymous";
-  const content = req.body.message;
-  console.log({ userId, content });
+//   const userId = req.body.userId || "anonymous";
+//   const content = req.body.message;
+//   console.log({ userId, content });
 
-  if (userId && content) {
-    await Message.create({
-      userId,
-      content,
-      role: "user",
-    });
+//   if (userId && content) {
+//     await Message.create({
+//       userId,
+//       content,
+//       role: "user",
+//     });
 
-    console.log("✅ WhatsApp Message Received:", userId, content);
-  }
+//     console.log("✅ WhatsApp Message Received:", userId, content);
+//   }
 
-  res.sendStatus(200);
-});
+//   res.sendStatus(200);
+// });
 
 app.post("/webhook", async (req, res) => {
   console.log("🚨 Received Webhook:", JSON.stringify(req.body, null, 2));
