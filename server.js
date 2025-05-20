@@ -83,24 +83,65 @@ app.post("/ai", async (req, res) => {
   // }
 });
 
-app.post("/webhook", async (req, res) => {
-  const message = req.body?.results?.[0];
+app.post("/test", async (req, res) => {
+  console.log("🚨 Received Test:", JSON.stringify(req.body, null, 2));
 
-  const from = message?.from;
-  const text = message?.message?.text;
+  const userId = req.body.userId || "anonymous";
+  const content = req.body.message;
+  console.log({ userId, content });
 
-  if (from && text) {
+  if (userId && content) {
     await Message.create({
-      userId: from,
-      content: text,
+      userId,
+      content,
       role: "user",
     });
 
-    console.log("✅ WhatsApp Message Received:", from, text);
+    console.log("✅ WhatsApp Message Received:", userId, content);
   }
 
   res.sendStatus(200);
 });
+
+app.post("/webhook", async (req, res) => {
+  console.log("🚨 Received Webhook:", JSON.stringify(req.body, null, 2));
+
+  const userId = req.body.userId || "anonymous";
+  const content = req.body.message;
+  console.log({ userId, content });
+
+  if (userId && content) {
+    await Message.create({
+      userId,
+      content,
+      role: "user",
+    });
+
+    console.log("✅ WhatsApp Message Received:", userId, content);
+  }
+
+  res.sendStatus(200);
+});
+
+// app.post("/webhook", async (req, res) => {
+//   console.log("🚨 Received Webhook:", JSON.stringify(req.body, null, 2));
+//   const message = req.body?.results?.[0];
+
+//   const from = message?.from;
+//   const text = message?.message?.text;
+
+//   if (from && text) {
+//     await Message.create({
+//       userId: from,
+//       content: text,
+//       role: "user",
+//     });
+
+//     console.log("✅ WhatsApp Message Received:", from, text);
+//   }
+
+//   res.sendStatus(200);
+// });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
