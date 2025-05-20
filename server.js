@@ -46,10 +46,10 @@ app.post("/ai", async (req, res) => {
     return res.status(400).json({ reply: "Invalid input." });
   }
 
-  const curUserMessage = { role: "user", content: userMessage };
+  // const curUserMessage = { role: "user", content: userMessage };
 
-  // Create database entry with user message
-  await Message.create({ userId, ...curUserMessage });
+  // // Create database entry with user message
+  // await Message.create({ userId, ...curUserMessage });
 
   // Fetch chat history from DB
 
@@ -81,6 +81,25 @@ app.post("/ai", async (req, res) => {
   //   console.error("OpenAI error:", err.response?.data || err.message);
   //   return res.status(500).json({ reply: "Sorry, something went wrong." });
   // }
+});
+
+app.post("/webhook", async (req, res) => {
+  const message = req.body?.results?.[0];
+
+  const from = message?.from;
+  const text = message?.message?.text;
+
+  if (from && text) {
+    await Message.create({
+      userId: from,
+      content: text,
+      role: "user",
+    });
+
+    console.log("✅ WhatsApp Message Received:", from, text);
+  }
+
+  res.sendStatus(200);
 });
 
 const PORT = process.env.PORT || 3000;
