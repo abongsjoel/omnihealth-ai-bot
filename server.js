@@ -52,53 +52,35 @@ app.post("/ai", async (req, res) => {
   await Message.create({ userId, ...curUserMessage });
 
   // Fetch chat history from DB
-  const history = await Message.find({ userId })
-    .sort({ timestamp: -1 })
-    .limit(20)
-    .select("role content -_id");
 
-  const orderedHistory = history.reverse();
+  // try {
+  //   const openaiRes = await axios.post(
+  //     "https://openrouter.ai/api/v1/chat/completions",
+  //     {
+  //       model: "openai/gpt-3.5-turbo",
+  //       messages: messages,
+  //     },
+  //     {
+  //       headers: {
+  //         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+  //         "Content-Type": "application/json",
+  //         "HTTP-Referer": "https://yourdomain.com",
+  //         "X-Title": "OmniHealth Bot",
+  //       },
+  //     }
+  //   );
 
-  const messages = [
-    { role: "system", content: "You are a helpful health assistant." },
-    ...orderedHistory
-      .filter(
-        (msg) => typeof msg.content === "string" && msg.content.trim() !== ""
-      )
-      .map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-    curUserMessage,
-  ];
+  //   const reply = openaiRes.data.choices[0].message.content;
+  //   console.log({ reply });
 
-  try {
-    const openaiRes = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        model: "openai/gpt-3.5-turbo",
-        messages: messages,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://yourdomain.com",
-          "X-Title": "OmniHealth Bot",
-        },
-      }
-    );
+  //   // Create database entry with assistant's response
+  //   await Message.create({ userId, content: reply, role: "assistant" });
 
-    const reply = openaiRes.data.choices[0].message.content;
-
-    // Create database entry with assistant's response
-    await Message.create({ userId, content: reply, role: "assistant" });
-
-    return res.json({ reply });
-  } catch (err) {
-    console.error("OpenAI error:", err.response?.data || err.message);
-    return res.status(500).json({ reply: "Sorry, something went wrong." });
-  }
+  //   return res.json({ reply });
+  // } catch (err) {
+  //   console.error("OpenAI error:", err.response?.data || err.message);
+  //   return res.status(500).json({ reply: "Sorry, something went wrong." });
+  // }
 });
 
 const PORT = process.env.PORT || 3000;
