@@ -87,8 +87,8 @@ app.post("/ai", async (req, res) => {
 
 app.post("/chat", async (req, res) => {
   // console.log("🚨 Received Test:", JSON.stringify(req.body, null, 2));
-  // const userId = req.body.userId || "anonymous";
-  // const content = req.body.message;
+  const userId = req.body.userId || "anonymous";
+  const content = req.body.message;
   // console.log({ userId, content });
   // if (userId && content) {
   //   await Message.create({
@@ -98,7 +98,7 @@ app.post("/chat", async (req, res) => {
   //   });
   //   console.log("✅ WhatsApp Message Received:", userId, content);
   // }
-  // res.sendStatus(200);
+  res.sendStatus(200);
 });
 
 app.post("/webhook", async (req, res) => {
