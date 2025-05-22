@@ -42,62 +42,80 @@ app.use(
 app.post("/ai", async (req, res) => {
   const userId = req.body.userId || "anonymous";
   const userMessage = req.body.message;
-  console.log({ userId, userMessage });
 
   if (!userMessage || typeof userMessage !== "string") {
     return res.status(400).json({ reply: "Invalid input." });
   }
 
-  // const curUserMessage = { role: "user", content: userMessage };
+  const curUserMessage = { role: "user", content: userMessage };
 
   // // Create database entry with user message
-  // await Message.create({ userId, ...curUserMessage });
+  await Message.create({ userId, ...curUserMessage });
 
   // Fetch chat history from DB
+  const history = await Message.find({ userId })
+    .sort({ timestamp: -1 })
+    .limit(20)
+    .select("role content -_id");
 
-  // try {
-  //   const openaiRes = await axios.post(
-  //     "https://openrouter.ai/api/v1/chat/completions",
-  //     {
-  //       model: "openai/gpt-3.5-turbo",
-  //       messages: messages,
-  //     },
-  //     {
-  //       headers: {
-  //         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-  //         "Content-Type": "application/json",
-  //         "HTTP-Referer": "https://yourdomain.com",
-  //         "X-Title": "OmniHealth Bot",
-  //       },
-  //     }
-  //   );
+  const orderedHistory = history.reverse();
 
-  //   const reply = openaiRes.data.choices[0].message.content;
-  //   console.log({ reply });
+  const messages = [
+    { role: "system", content: "You are a helpful health assistant." },
+    ...orderedHistory
+      .filter(
+        (msg) => typeof msg.content === "string" && msg.content.trim() !== ""
+      )
+      .map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+    curUserMessage,
+  ];
 
-  //   // Create database entry with assistant's response
-  //   await Message.create({ userId, content: reply, role: "assistant" });
+  try {
+    const openaiRes = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: "openai/gpt-3.5-turbo",
+        messages,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://yourdomain.com",
+          "X-Title": "OmniHealth Bot",
+        },
+      }
+    );
 
-  //   return res.json({ reply });
-  // } catch (err) {
-  //   console.error("OpenAI error:", err.response?.data || err.message);
-  //   return res.status(500).json({ reply: "Sorry, something went wrong." });
-  // }
+    const reply = openaiRes.data.choices[0].message.content;
+    console.log({ reply });
+
+    // Create database entry with assistant's response
+    await Message.create({ userId, content: reply, role: "assistant" });
+
+    return res.json({ reply });
+  } catch (err) {
+    console.error("OpenAI error:", err.response?.data || err.message);
+    return res.status(500).json({ reply: "Sorry, something went wrong." });
+  }
 });
 
 app.post("/chat", async (req, res) => {
-  // console.log("🚨 Received Test:", JSON.stringify(req.body, null, 2));
+  // console.log("🚨 Received Test (chat):", JSON.stringify(req.body, null, 2));
   const userId = req.body.userId || "anonymous";
   const content = req.body.message;
-  // console.log({ userId, content });
-  // if (userId && content) {
-  //   await Message.create({
-  //     userId,
-  //     content,
-  //     role: "user",
-  //   });
-  //   console.log("✅ WhatsApp Message Received:", userId, content);
-  // }
+
+  if (userId && content) {
+    await Message.create({
+      userId,
+      content,
+      role: "user",
+    });
+    console.log("✅ WhatsApp Message Received:", userId, content);
+  }
   res.sendStatus(200);
 });
 
@@ -115,7 +133,7 @@ app.post("/webhook", async (req, res) => {
       role: "user",
     });
 
-    console.log("✅ WhatsApp Message Received:", userId, content);
+    console.log("✅ WhatsApp Message Received (Webhook):", userId, content);
   }
 
   res.sendStatus(200);
