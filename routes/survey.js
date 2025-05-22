@@ -63,4 +63,15 @@ router.post("/survey", async (req, res) => {
   res.sendStatus(200);
 });
 
+// GET /api/surveys - get all survey results
+router.get("/surveys", async (req, res) => {
+  try {
+    const results = await Survey.find().sort({ timestamp: -1 });
+    res.status(200).json(results);
+  } catch (error) {
+    console.error("Error fetching survey results:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 module.exports = router;
