@@ -86,18 +86,18 @@ app.post("/ai", async (req, res) => {
 });
 
 app.post("/chat", async (req, res) => {
-  // console.log("🚨 Received Test:", JSON.stringify(req.body, null, 2));
+  // console.log("🚨 Received Test (chat):", JSON.stringify(req.body, null, 2));
   const userId = req.body.userId || "anonymous";
   const content = req.body.message;
-  // console.log({ userId, content });
-  // if (userId && content) {
-  //   await Message.create({
-  //     userId,
-  //     content,
-  //     role: "user",
-  //   });
-  //   console.log("✅ WhatsApp Message Received:", userId, content);
-  // }
+
+  if (userId && content) {
+    await Message.create({
+      userId,
+      content,
+      role: "user",
+    });
+    console.log("✅ WhatsApp Message Received:", userId, content);
+  }
   res.sendStatus(200);
 });
 
@@ -115,7 +115,7 @@ app.post("/webhook", async (req, res) => {
       role: "user",
     });
 
-    console.log("✅ WhatsApp Message Received:", userId, content);
+    console.log("✅ WhatsApp Message Received (Webhook):", userId, content);
   }
 
   res.sendStatus(200);
