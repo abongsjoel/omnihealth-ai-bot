@@ -48,41 +48,53 @@ app.post("/ai", async (req, res) => {
     return res.status(400).json({ reply: "Invalid input." });
   }
 
-  // const curUserMessage = { role: "user", content: userMessage };
+  const curUserMessage = { role: "user", content: userMessage };
 
   // // Create database entry with user message
-  // await Message.create({ userId, ...curUserMessage });
+  await Message.create({ userId, ...curUserMessage });
 
   // Fetch chat history from DB
+  const previousMessages = await Message.find({ userId }).sort({
+    timestamp: 1,
+  });
 
-  // try {
-  //   const openaiRes = await axios.post(
-  //     "https://openrouter.ai/api/v1/chat/completions",
-  //     {
-  //       model: "openai/gpt-3.5-turbo",
-  //       messages: messages,
-  //     },
-  //     {
-  //       headers: {
-  //         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-  //         "Content-Type": "application/json",
-  //         "HTTP-Referer": "https://yourdomain.com",
-  //         "X-Title": "OmniHealth Bot",
-  //       },
-  //     }
-  //   );
+  const messages = previousMessages.map((msg) => ({
+    role: msg.role,
+    content: msg.content,
+  }));
 
-  //   const reply = openaiRes.data.choices[0].message.content;
-  //   console.log({ reply });
+  if (messages.length === 0) {
+    messages.push({ role: "user", content: userMessage });
+  }
 
-  //   // Create database entry with assistant's response
-  //   await Message.create({ userId, content: reply, role: "assistant" });
+  try {
+    const openaiRes = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: "openai/gpt-3.5-turbo",
+        messages,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://yourdomain.com",
+          "X-Title": "OmniHealth Bot",
+        },
+      }
+    );
 
-  //   return res.json({ reply });
-  // } catch (err) {
-  //   console.error("OpenAI error:", err.response?.data || err.message);
-  //   return res.status(500).json({ reply: "Sorry, something went wrong." });
-  // }
+    const reply = openaiRes.data.choices[0].message.content;
+    console.log({ reply });
+
+    // Create database entry with assistant's response
+    await Message.create({ userId, content: reply, role: "assistant" });
+
+    return res.json({ reply });
+  } catch (err) {
+    console.error("OpenAI error:", err.response?.data || err.message);
+    return res.status(500).json({ reply: "Sorry, something went wrong." });
+  }
 });
 
 app.post("/chat", async (req, res) => {
