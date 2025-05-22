@@ -42,7 +42,6 @@ app.use(
 app.post("/ai", async (req, res) => {
   const userId = req.body.userId || "anonymous";
   const userMessage = req.body.message;
-  console.log({ userId, userMessage });
 
   if (!userMessage || typeof userMessage !== "string") {
     return res.status(400).json({ reply: "Invalid input." });
