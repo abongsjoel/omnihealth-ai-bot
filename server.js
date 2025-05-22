@@ -54,18 +54,25 @@ app.post("/ai", async (req, res) => {
   await Message.create({ userId, ...curUserMessage });
 
   // Fetch chat history from DB
-  const previousMessages = await Message.find({ userId }).sort({
-    timestamp: 1,
-  });
+  const history = await Message.find({ userId })
+    .sort({ timestamp: -1 })
+    .limit(20)
+    .select("role content -_id");
 
-  const messages = previousMessages.map((msg) => ({
-    role: msg.role,
-    content: msg.content,
-  }));
+  const orderedHistory = history.reverse();
 
-  if (messages.length === 0) {
-    messages.push({ role: "user", content: userMessage });
-  }
+  const messages = [
+    { role: "system", content: "You are a helpful health assistant." },
+    ...orderedHistory
+      .filter(
+        (msg) => typeof msg.content === "string" && msg.content.trim() !== ""
+      )
+      .map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+    curUserMessage,
+  ];
 
   try {
     const openaiRes = await axios.post(
