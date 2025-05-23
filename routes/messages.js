@@ -14,7 +14,7 @@ router.get("/user-ids", async (req, res) => {
 router.get("/messages/:userId", async (req, res) => {
   const messages = await Message.find({ userId: req.params.userId })
     .sort({ timestamp: 1 })
-    .select("role content -_id");
+    .select("role content timestamp -_id");
   res.json(messages);
 });
 
