@@ -94,7 +94,12 @@ app.post("/ai", async (req, res) => {
     console.log({ reply });
 
     // Create database entry with assistant's response
-    await Message.create({ userId, content: reply, role: "assistant" });
+    await Message.create({
+      userId,
+      content: reply,
+      role: "assistant",
+      agent: "openai",
+    });
 
     return res.json({ reply });
   } catch (err) {
