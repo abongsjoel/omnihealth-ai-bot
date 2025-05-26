@@ -79,4 +79,17 @@ router.post("/careteam/login", async (req, res) => {
   }
 });
 
+// GET /api/careteam
+router.get("/careteam", async (req, res) => {
+  try {
+    const members = await CareTeam.find({}, "-password") // exclude passwords
+      .sort({ createdAt: -1 }); // optional: sort newest first
+
+    res.status(200).json(members);
+  } catch (error) {
+    console.error("Error fetching care team members:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 module.exports = router;
