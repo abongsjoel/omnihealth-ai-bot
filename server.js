@@ -6,9 +6,11 @@ require("dotenv").config();
 
 const connectDB = require("./db");
 const Message = require("./models/Message");
+
 const messageRoutes = require("./routes/messages");
 const userRoutes = require("./routes/users");
 const surveyRoutes = require("./routes/survey");
+const careTeamRoutes = require("./routes/careteam");
 
 const app = express();
 connectDB();
@@ -29,6 +31,7 @@ app.use(express.json());
 app.use("/api", messageRoutes);
 app.use("/api", userRoutes);
 app.use("/api", surveyRoutes);
+app.use("/api", careTeamRoutes);
 app.use(
   helmet.contentSecurityPolicy({
     useDefaults: true,
