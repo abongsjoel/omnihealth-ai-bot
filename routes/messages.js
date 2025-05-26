@@ -20,10 +20,12 @@ router.get("/messages/:userId", async (req, res) => {
 
 // POST /api/send-message
 router.post("/send-message", async (req, res) => {
-  const { to, message } = req.body;
+  const { to, message, agent } = req.body;
 
-  if (!to || !message) {
-    return res.status(400).json({ error: "Missing 'to' or 'message'" });
+  if (!to || !message || !agent) {
+    return res
+      .status(400)
+      .json({ error: "Missing 'to' or 'message' or 'agent'" });
   }
 
   try {
@@ -50,7 +52,7 @@ router.post("/send-message", async (req, res) => {
       userId: to,
       content: message,
       role: "assistant",
-      agent: "human",
+      agent: agent,
     });
 
     res.json({ status: "Message sent" });
