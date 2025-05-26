@@ -7,10 +7,11 @@ const router = express.Router();
 // POST /api/careteam/signup
 router.post("/careteam/signup", async (req, res) => {
   try {
-    const { fullName, email, phone, password } = req.body;
+    const { fullName, displayName, speciality, email, phone, password } =
+      req.body;
 
     // Validate required fields
-    if (!fullName || !email || !phone || !password) {
+    if (!fullName || !email || !phone || !password || !speciality) {
       return res.status(400).json({ error: "All fields are required." });
     }
 
@@ -21,7 +22,14 @@ router.post("/careteam/signup", async (req, res) => {
     }
 
     // Create and save new CareTeam member
-    const careTeamMember = new CareTeam({ fullName, email, phone, password });
+    const careTeamMember = new CareTeam({
+      fullName,
+      email,
+      phone,
+      password,
+      displayName,
+      speciality,
+    });
     await careTeamMember.save();
 
     res.status(201).json({
@@ -29,6 +37,8 @@ router.post("/careteam/signup", async (req, res) => {
       careTeam: {
         id: careTeamMember._id,
         fullName: careTeamMember.fullName,
+        displayName: careTeamMember.displayName,
+        speciality: careTeamMember.speciality,
         email: careTeamMember.email,
         phone: careTeamMember.phone,
       },
@@ -57,6 +67,8 @@ router.post("/careteam/login", async (req, res) => {
     res.status(200).json({
       _id: teamMember._id,
       fullName: teamMember.fullName,
+      displayName: teamMember.displayName,
+      speciality: teamMember.speciality,
       email: teamMember.email,
       phone: teamMember.phone,
       createdAt: teamMember.createdAt,

@@ -7,6 +7,13 @@ const CareTeamSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    displayName: {
+      type: String,
+    },
+    speciality: {
+      type: String,
+      required: true,
+    },
     phone: {
       type: String,
       required: true,
