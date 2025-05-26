@@ -39,4 +39,32 @@ router.post("/careteam/signup", async (req, res) => {
   }
 });
 
+// POST /api/care-team/login
+router.post("/careteam/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password)
+    return res.status(400).json({ error: "Email and password required." });
+
+  try {
+    const teamMember = await CareTeam.findOne({ email });
+    if (!teamMember)
+      return res.status(401).json({ error: "Invalid credentials" });
+
+    const isMatch = await teamMember.comparePassword(password);
+    if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
+
+    res.status(200).json({
+      _id: teamMember._id,
+      fullName: teamMember.fullName,
+      email: teamMember.email,
+      phone: teamMember.phone,
+      createdAt: teamMember.createdAt,
+      updatedAt: teamMember.updatedAt,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 module.exports = router;
