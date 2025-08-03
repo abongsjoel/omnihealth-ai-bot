@@ -1,6 +1,7 @@
 const express = require("express");
 const axios = require("axios");
 const helmet = require("helmet");
+const bodyParser = require("body-parser");
 const cors = require("cors");
 require("dotenv").config();
 
@@ -41,6 +42,7 @@ app.use(
     },
   })
 );
+app.use(bodyParser.urlencoded({ extended: false }));
 
 app.post("/ai", async (req, res) => {
   const userId = req.body.userId || "anonymous";
@@ -127,25 +129,39 @@ app.post("/chat", async (req, res) => {
   res.sendStatus(200);
 });
 
-app.post("/webhook", async (req, res) => {
-  console.log("🚨 Received Webhook:", JSON.stringify(req.body, null, 2));
+//Webhook for Twilio
+app.post("/webhook", (req, res) => {
+  console.log("✅ Parsed body:", req.body);
 
-  const userId = req.body.userId || "anonymous";
-  const content = req.body.message;
-  console.log({ userId, content });
+  const from = req.body.From;
+  const message = req.body.Body;
 
-  if (userId && content) {
-    await Message.create({
-      userId,
-      content,
-      role: "user",
-    });
+  console.log(`📩 Message from ${from}: ${message}`);
 
-    console.log("✅ WhatsApp Message Received (Webhook):", userId, content);
-  }
-
-  res.sendStatus(200);
+  res.set("Content-Type", "text/xml");
+  res.send(`<Response></Response>`); // required by Twilio
 });
+
+// app.post("/webhook", async (req, res) => {
+//   console.log("🚨 Received Webhook:", {req, body: req.body});
+//   console.log("🚨 Received Webhook:", JSON.stringify(req.body, null, 2));
+
+//   const userId = req.body.userId || "anonymous";
+//   const content = req.body.message;
+//   console.log({ userId, content });
+
+//   if (userId && content) {
+//     await Message.create({
+//       userId,
+//       content,
+//       role: "user",
+//     });
+
+//     console.log("✅ WhatsApp Message Received (Webhook):", userId, content);
+//   }
+
+//   res.sendStatus(200);
+// });
 
 // app.post("/webhook", async (req, res) => {
 //   console.log("🚨 Received Webhook:", JSON.stringify(req.body, null, 2));
@@ -166,6 +182,11 @@ app.post("/webhook", async (req, res) => {
 
 //   res.sendStatus(200);
 // });
+
+app.get("/", (req, res) => {
+  res.send("WhatsApp bot is running ✅");
+});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
