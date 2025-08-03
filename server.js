@@ -130,20 +130,34 @@ app.post("/chat", async (req, res) => {
 });
 
 //Webhook for Twilio
-app.post("/webhook", (req, res) => {
-  console.log("✅ Parsed body:", req.body);
+app.post("/webhook", async (req, res) => {
+  // console.log("✅ Parsed body:", req.body);
 
-  const from = req.body.From;
-  const message = req.body.Body;
+  let userId = req.body.WaId || "anonymous";
+  
+  // Check if userId starts with "237" and 4th character is not "6"
+  if (userId !== "anonymous" && userId.startsWith("237") && userId.length >= 4 && userId[3] !== "6") {
+    userId = userId.slice(0, 3) + "6" + userId.slice(3);
+  }
 
-  console.log(`📩 Message from ${from}: ${message}`);
+  const content = req.body.Body;
+  console.log({ userId, content });
+
+  if (userId && content) {
+    await Message.create({
+      userId,
+      content,
+      role: "user",
+    });
+
+    console.log("✅ WhatsApp Message Received (Webhook):", userId, content);
+  }
 
   res.set("Content-Type", "text/xml");
   res.send(`<Response></Response>`); // required by Twilio
 });
 
 // app.post("/webhook", async (req, res) => {
-//   console.log("🚨 Received Webhook:", {req, body: req.body});
 //   console.log("🚨 Received Webhook:", JSON.stringify(req.body, null, 2));
 
 //   const userId = req.body.userId || "anonymous";
