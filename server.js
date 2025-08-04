@@ -131,26 +131,67 @@ app.post("/chat", async (req, res) => {
 
 //Webhook for Twilio
 app.post("/webhook", async (req, res) => {
-  console.log("✅ Parsed body:", req.body);
+  // console.log("✅ Parsed body:", req.body);
 
-  let userId = req.body.WaId || "anonymous";
-  
+  const userId = req.body.WaId || "anonymous";
+
+  let formattedUserId = userId;
+
   // Check if userId starts with "237" and 4th character is not "6"
-  if (userId !== "anonymous" && userId.startsWith("237") && userId.length >= 4 && userId[3] !== "6") {
-    userId = userId.slice(0, 3) + "6" + userId.slice(3);
+  if (
+    userId !== "anonymous" &&
+    userId.startsWith("237") &&
+    userId.length >= 4 &&
+    userId[3] !== "6"
+  ) {
+    formattedUserId = userId.slice(0, 3) + "6" + userId.slice(3);
   }
 
   const content = req.body.Body;
-  console.log({ userId, content });
+  // console.log({ userId, formattedUserId, content });
 
   if (userId && content) {
     await Message.create({
-      userId,
+      userId: formattedUserId,
       content,
       role: "user",
     });
 
-    console.log("✅ WhatsApp Message Received (Webhook):", userId, content);
+    console.log(
+      "✅ WhatsApp Message Received (Webhook):",
+      formattedUserId,
+      content
+    );
+  }
+
+  const existingMessages = await Message.find({ userId });
+  console.log(
+    "Existing messages:",
+    existingMessages[existingMessages.length - 1]
+  );
+
+  if (existingMessages.length >= 0) {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const from = "whatsapp:+14155238886";
+    const to = `whatsapp:+${userId}`;
+
+    const client = require("twilio")(accountSid, authToken);
+    const message =
+      "Hi 👋, would you like to talk to an AI 🤖 or a human 👩🏽‍⚕️?\nPlease reply with *AI* or *Human*.";
+
+    await client.messages.create({
+      from,
+      to,
+      body: message,
+    });
+
+    await Message.create({
+      userId: formattedUserId,
+      content: message,
+      role: "assistant",
+      agent: "auto-welcome",
+    });
   }
 
   res.set("Content-Type", "text/xml");

@@ -68,7 +68,7 @@ router.get("/messages/:userId", async (req, res) => {
 
 // Sent using Twilio API
 router.post("/send-message", async (req, res) => {
-  console.log("🚨 Received Send Message Request:", req.body);
+  // console.log("🚨 Received Send Message Request:", req.body);
   const { to, message, agent } = req.body;
 
   if (!to || !message || !agent) {
@@ -91,16 +91,13 @@ router.post("/send-message", async (req, res) => {
   }
 
   const toWhatsApp = `whatsapp:+${formattedTo}`;
-  // const toWhatsApp = `whatsapp:+${to}`;
+  const toWhatsAppUnformatted = `whatsapp:+${to}`;
 
   const client = require("twilio")(accountSid, authToken);
 
+  // console.log({ message, from, to, toWhatsApp });
+
   try {
-    console.log("📩 Sending message via Twilio:", {
-      body: message,
-      from,
-      to: toWhatsApp,
-    });
     // 1. Send to Twilio (number formatted)
     await client.messages.create({
       body: message,
@@ -111,7 +108,7 @@ router.post("/send-message", async (req, res) => {
     await client.messages.create({
       body: message,
       from,
-      to,
+      to: toWhatsAppUnformatted,
     });
 
     // 2. Save to DB
