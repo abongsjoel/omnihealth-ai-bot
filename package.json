@@ -17,6 +17,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
-    "mongoose": "^8.15.0"
+    "mongoose": "^8.15.0",
+    "twilio": "^5.8.0"
   }
 }
