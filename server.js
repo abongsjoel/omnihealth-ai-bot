@@ -147,10 +147,28 @@ app.post("/webhook", async (req, res) => {
     formattedUserId = userId.slice(0, 3) + "6" + userId.slice(3);
   }
 
+  console.log({ userId, formattedUserId });
+
   const content = req.body.Body;
   // console.log({ userId, formattedUserId, content });
 
   if (userId && content) {
+    const existingMessages = await Message.find({ userId: formattedUserId });
+    console.log({ lastMessage: existingMessages[existingMessages.length - 1] });
+
+    let itsBeenAWhile = false;
+
+    let lastMessage = null;
+
+    if (existingMessages.length > 0) {
+      lastMessage = existingMessages[existingMessages.length - 1];
+      const lastMessageTime = new Date(lastMessage.timestamp);
+      const currentTime = new Date();
+      const timeDifference = currentTime - lastMessageTime;
+      const aWhile = 1 * 60 * 1000; // 1 minute in milliseconds
+      itsBeenAWhile = timeDifference > aWhile;
+    }
+
     await Message.create({
       userId: formattedUserId,
       content,
@@ -160,38 +178,72 @@ app.post("/webhook", async (req, res) => {
     console.log(
       "✅ WhatsApp Message Received (Webhook):",
       formattedUserId,
-      content
+      content,
+      itsBeenAWhile
     );
-  }
 
-  const existingMessages = await Message.find({ userId });
-  console.log(
-    "Existing messages:",
-    existingMessages[existingMessages.length - 1]
-  );
-
-  if (existingMessages.length >= 0) {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     const from = "whatsapp:+14155238886";
     const to = `whatsapp:+${userId}`;
 
     const client = require("twilio")(accountSid, authToken);
-    const message =
-      "Hi 👋, would you like to talk to an AI 🤖 or a human 👩🏽‍⚕️?\nPlease reply with *AI* or *Human*.";
 
-    await client.messages.create({
-      from,
-      to,
-      body: message,
-    });
+    if (itsBeenAWhile) {
+      const message =
+        "Hi 👋, Welcome to OmniHealth, your personal health assistant. \n\nWould you like to talk to an AI 🤖 or a human 👩🏽‍⚕️?\nPlease reply with *AI* or *Human*.";
 
-    await Message.create({
-      userId: formattedUserId,
-      content: message,
-      role: "assistant",
-      agent: "auto-welcome",
-    });
+      await client.messages.create({
+        from,
+        to,
+        body: message,
+      });
+
+      await Message.create({
+        userId: formattedUserId,
+        content: message,
+        role: "assistant",
+        agent: "auto-welcome",
+      });
+    } else if (content.toLowerCase().includes("ai")) {
+      console.log("🚨 Auto-reply with AI response");
+      // Auto-reply with AI response
+      const aiResponse =
+        "You chose AI 🤖. \nIf at any point you want to switch to a human, just type 'Human'. \nHow can I assist you today?";
+
+      await client.messages.create({
+        from,
+        to,
+        body: aiResponse,
+      });
+
+      await Message.create({
+        userId: formattedUserId,
+        content: aiResponse,
+        role: "assistant",
+        agent: "auto-ai",
+      });
+    } else if (content.toLowerCase().includes("human")) {
+      console.log("🚨 Auto-reply with human response");
+      // Auto-reply with human response
+      const humanResponse =
+        "You chose Human 👩🏽‍⚕️. \nIf at any point you want to switch to AI, just type 'AI'. \nA care team member will assist you shortly.";
+
+      await client.messages.create({
+        from,
+        to,
+        body: humanResponse,
+      });
+
+      await Message.create({
+        userId: formattedUserId,
+        content: humanResponse,
+        role: "assistant",
+        agent: "auto-human",
+      });
+    } else if (lastMessage && lastMessage.agent === "auto-ai") {
+      console.log("You can now start chatting with an AI");
+    }
   }
 
   res.set("Content-Type", "text/xml");
