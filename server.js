@@ -157,7 +157,7 @@ app.post("/webhook", async (req, res) => {
       const lastMessageTime = new Date(lastMessage[0].timestamp);
       const currentTime = new Date();
       const timeDifference = currentTime - lastMessageTime;
-      const aWhile = 1 * 60 * 1000; // 1 minute in milliseconds
+      const aWhile = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
       itsBeenAWhile = timeDifference > aWhile;
     }
 
