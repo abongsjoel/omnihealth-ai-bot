@@ -101,11 +101,17 @@ router.post("/send-message", async (req, res) => {
       from,
       to: toWhatsApp,
     });
-    // 1. Send to Twilio
+    // 1. Send to Twilio (number formatted)
     await client.messages.create({
       body: message,
       from,
       to: toWhatsApp,
+    });
+    // 1b. Sent to Twillo (number not formatted)
+    await client.messages.create({
+      body: message,
+      from,
+      to,
     });
 
     // 2. Save to DB
