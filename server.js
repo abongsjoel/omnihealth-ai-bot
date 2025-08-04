@@ -114,7 +114,6 @@ app.post("/ai", async (req, res) => {
 });
 
 app.post("/chat", async (req, res) => {
-  // console.log("🚨 Received Test (chat):", JSON.stringify(req.body, null, 2));
   const userId = req.body.userId || "anonymous";
   const content = req.body.message;
 
@@ -131,8 +130,6 @@ app.post("/chat", async (req, res) => {
 
 //Webhook for Twilio
 app.post("/webhook", async (req, res) => {
-  // console.log("✅ Parsed body:", req.body);
-
   const userId = req.body.WaId || "anonymous";
 
   let formattedUserId = userId;
@@ -147,22 +144,17 @@ app.post("/webhook", async (req, res) => {
     formattedUserId = userId.slice(0, 3) + "6" + userId.slice(3);
   }
 
-  console.log({ userId, formattedUserId });
+  const userMessage = req.body.Body;
 
-  const content = req.body.Body;
-  // console.log({ userId, formattedUserId, content });
-
-  if (userId && content) {
-    const existingMessages = await Message.find({ userId: formattedUserId });
-    console.log({ lastMessage: existingMessages[existingMessages.length - 1] });
+  if (userId && userMessage) {
+    const lastMessage = await Message.find({ userId: formattedUserId })
+      .sort({ timestamp: -1 })
+      .limit(1);
 
     let itsBeenAWhile = false;
 
-    let lastMessage = null;
-
-    if (existingMessages.length > 0) {
-      lastMessage = existingMessages[existingMessages.length - 1];
-      const lastMessageTime = new Date(lastMessage.timestamp);
+    if (lastMessage.length > 0) {
+      const lastMessageTime = new Date(lastMessage[0].timestamp);
       const currentTime = new Date();
       const timeDifference = currentTime - lastMessageTime;
       const aWhile = 1 * 60 * 1000; // 1 minute in milliseconds
@@ -171,16 +163,9 @@ app.post("/webhook", async (req, res) => {
 
     await Message.create({
       userId: formattedUserId,
-      content,
+      content: userMessage,
       role: "user",
     });
-
-    console.log(
-      "✅ WhatsApp Message Received (Webhook):",
-      formattedUserId,
-      content,
-      itsBeenAWhile
-    );
 
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -191,7 +176,7 @@ app.post("/webhook", async (req, res) => {
 
     if (itsBeenAWhile) {
       const message =
-        "Hi 👋, Welcome to OmniHealth, your personal health assistant. \n\nWould you like to talk to an AI 🤖 or a human 👩🏽‍⚕️?\nPlease reply with *AI* or *Human*.";
+        "Hi 👋, Welcome to OmniHealth, your personal health assistant. \n\nWould you like to talk to an AI 🤖 or a human 👩🏽‍⚕️?\n\nPlease reply with *AI* or *Human*.";
 
       await client.messages.create({
         from,
@@ -205,11 +190,10 @@ app.post("/webhook", async (req, res) => {
         role: "assistant",
         agent: "auto-welcome",
       });
-    } else if (content.toLowerCase().includes("ai")) {
-      console.log("🚨 Auto-reply with AI response");
+    } else if (userMessage.toLowerCase().includes("ai")) {
       // Auto-reply with AI response
       const aiResponse =
-        "You chose AI 🤖. \nIf at any point you want to switch to a human, just type 'Human'. \nHow can I assist you today?";
+        "You chose AI 🤖. \n\nIf at any point you want to switch to a human, just type 'Human'. \n\nHow can I assist you today?";
 
       await client.messages.create({
         from,
@@ -223,11 +207,10 @@ app.post("/webhook", async (req, res) => {
         role: "assistant",
         agent: "auto-ai",
       });
-    } else if (content.toLowerCase().includes("human")) {
-      console.log("🚨 Auto-reply with human response");
+    } else if (userMessage.toLowerCase().includes("human")) {
       // Auto-reply with human response
       const humanResponse =
-        "You chose Human 👩🏽‍⚕️. \nIf at any point you want to switch to AI, just type 'AI'. \nA care team member will assist you shortly.";
+        "You chose Human 👩🏽‍⚕️. \n\nIf at any point you want to switch to AI, just type 'AI'. \n\nA care team member will assist you shortly.";
 
       await client.messages.create({
         from,
@@ -241,8 +224,75 @@ app.post("/webhook", async (req, res) => {
         role: "assistant",
         agent: "auto-human",
       });
-    } else if (lastMessage && lastMessage.agent === "auto-ai") {
-      console.log("You can now start chatting with an AI");
+    } else if (
+      lastMessage &&
+      (lastMessage[0].agent === "auto-ai" || lastMessage[0].agent === "openai")
+    ) {
+      if (!userMessage || typeof userMessage !== "string") {
+        return res.status(400).json({ reply: "Invalid input." });
+      }
+
+      // Fetch chat history from DB
+      const history = await Message.find({ userId })
+        .sort({ timestamp: -1 })
+        .limit(20)
+        .select("role content -_id");
+
+      const orderedHistory = history.reverse();
+
+      const curUserMessage = { role: "user", content: userMessage };
+
+      const messages = [
+        { role: "system", content: "You are a helpful health assistant." },
+        ...orderedHistory
+          .filter(
+            (msg) =>
+              typeof msg.content === "string" && msg.content.trim() !== ""
+          )
+          .map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+        curUserMessage,
+      ];
+
+      try {
+        const openaiRes = await axios.post(
+          "https://openrouter.ai/api/v1/chat/completions",
+          {
+            model: "openai/gpt-3.5-turbo",
+            messages,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+              "Content-Type": "application/json",
+              "HTTP-Referer": "https://yourdomain.com",
+              "X-Title": "OmniHealth Bot",
+            },
+          }
+        );
+
+        const reply = openaiRes.data.choices[0].message.content;
+        console.log({ reply });
+
+        await client.messages.create({
+          from,
+          to,
+          body: reply,
+        });
+
+        // Create database entry with assistant's response
+        await Message.create({
+          userId: formattedUserId,
+          content: reply,
+          role: "assistant",
+          agent: "openai",
+        });
+      } catch (err) {
+        console.error("OpenAI error:", err.response?.data || err.message);
+        return res.status(500).json({ reply: "Sorry, something went wrong." });
+      }
     }
   }
 
@@ -251,8 +301,6 @@ app.post("/webhook", async (req, res) => {
 });
 
 // app.post("/webhook", async (req, res) => {
-//   console.log("🚨 Received Webhook:", JSON.stringify(req.body, null, 2));
-
 //   const userId = req.body.userId || "anonymous";
 //   const content = req.body.message;
 //   console.log({ userId, content });
@@ -271,7 +319,6 @@ app.post("/webhook", async (req, res) => {
 // });
 
 // app.post("/webhook", async (req, res) => {
-//   console.log("🚨 Received Webhook:", JSON.stringify(req.body, null, 2));
 //   const message = req.body?.results?.[0];
 
 //   const from = message?.from;
