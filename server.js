@@ -131,7 +131,7 @@ app.post("/chat", async (req, res) => {
 
 //Webhook for Twilio
 app.post("/webhook", async (req, res) => {
-  // console.log("✅ Parsed body:", req.body);
+  console.log("✅ Parsed body:", req.body);
 
   let userId = req.body.WaId || "anonymous";
   
