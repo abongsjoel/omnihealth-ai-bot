@@ -7,6 +7,7 @@ require("dotenv").config();
 
 const connectDB = require("./db");
 const Message = require("./models/Message");
+const User = require("./models/User");
 
 const messageRoutes = require("./routes/messages");
 const userRoutes = require("./routes/users");
@@ -197,8 +198,14 @@ app.post("/webhook", async (req, res) => {
         agent: "auto-welcome",
       });
     } else if (itsBeenAWhile) {
-      const message =
-        "Hi 👋, Welcome to OmniHealth, your personal health assistant. \n\nWould you like to talk to an AI 🤖 or a human 👩🏽‍⚕️?\n\nPlease reply with *AI* or *Human*.";
+      // Get user's name if available
+      let userName = "";
+      const user = await User.findOne({ userId: formattedUserId });
+      if (user && user.userName) {
+        userName = `, ${user.userName}`;
+      }
+
+      const message = `Hi 👋${userName}, Welcome to OmniHealth, your personal health assistant. \n\nWould you like to talk to an AI 🤖 or a human 👩🏽‍⚕️?\n\nPlease reply with *AI* or *Human*.`;
 
       await client.messages.create({
         from,
