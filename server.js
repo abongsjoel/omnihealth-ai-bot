@@ -174,7 +174,29 @@ app.post("/webhook", async (req, res) => {
 
     const client = require("twilio")(accountSid, authToken);
 
-    if (itsBeenAWhile) {
+    if (
+      lastMessage.length > 0 &&
+      !itsBeenAWhile &&
+      lastMessage[0].agent === "auto-welcome" &&
+      userMessage.toLowerCase() !== "ai" &&
+      userMessage.toLowerCase() !== "human"
+    ) {
+      const message =
+        "RESPONSE NOT UNDERSTOOD. \n\nWould you like to talk to an AI 🤖 or a human 👩🏽‍⚕️?\n\nPlease reply with *AI* or *Human*.";
+
+      await client.messages.create({
+        from,
+        to,
+        body: message,
+      });
+
+      await Message.create({
+        userId: formattedUserId,
+        content: message,
+        role: "assistant",
+        agent: "auto-welcome",
+      });
+    } else if (itsBeenAWhile) {
       const message =
         "Hi 👋, Welcome to OmniHealth, your personal health assistant. \n\nWould you like to talk to an AI 🤖 or a human 👩🏽‍⚕️?\n\nPlease reply with *AI* or *Human*.";
 
@@ -190,7 +212,7 @@ app.post("/webhook", async (req, res) => {
         role: "assistant",
         agent: "auto-welcome",
       });
-    } else if (userMessage.toLowerCase().includes("ai")) {
+    } else if (userMessage.toLowerCase() === "ai") {
       // Auto-reply with AI response
       const aiResponse =
         "You chose AI 🤖. \n\nIf at any point you want to switch to a human, just type 'Human'. \n\nHow can I assist you today?";
@@ -207,7 +229,7 @@ app.post("/webhook", async (req, res) => {
         role: "assistant",
         agent: "auto-ai",
       });
-    } else if (userMessage.toLowerCase().includes("human")) {
+    } else if (userMessage.toLowerCase() === "human") {
       // Auto-reply with human response
       const humanResponse =
         "You chose Human 👩🏽‍⚕️. \n\nIf at any point you want to switch to AI, just type 'AI'. \n\nA care team member will assist you shortly.";
