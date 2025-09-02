@@ -5,6 +5,7 @@ const MessageSchema = new mongoose.Schema({
   content: String,
   agent: String,
   role: { type: String, enum: ["user", "assistant"] },
+  read: { type: Boolean, default: false },
   timestamp: { type: Date, default: Date.now },
 });
 

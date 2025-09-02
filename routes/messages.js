@@ -14,7 +14,7 @@ router.get("/user-ids", async (req, res) => {
 router.get("/messages/:userId", async (req, res) => {
   const messages = await Message.find({ userId: req.params.userId })
     .sort({ timestamp: 1 })
-    .select("role content agent timestamp -_id");
+    .select("role content agent timestamp read -_id");
   res.json(messages);
 });
 
@@ -123,6 +123,25 @@ router.post("/send-message", async (req, res) => {
       JSON.stringify(error.response?.data || error.message, null, 2)
     );
     res.status(500).json({ error: "Failed to send message via Twilio" });
+  }
+});
+
+router.patch("/messages/:userId/mark-read", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const result = await Message.updateMany(
+      { userId: userId },
+      { $set: { read: true } }
+    );
+
+    res.json({
+      status: "Messages marked as read",
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("Error marking messages as read:", error);
+    res.status(500).json({ error: "Failed to mark messages as read" });
   }
 });
 
