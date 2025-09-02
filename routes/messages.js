@@ -126,5 +126,24 @@ router.post("/send-message", async (req, res) => {
   }
 });
 
+router.patch("/messages/:userId/mark-read", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const result = await Message.updateMany(
+      { userId: userId },
+      { $set: { read: true } }
+    );
+
+    res.json({
+      status: "Messages marked as read",
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("Error marking messages as read:", error);
+    res.status(500).json({ error: "Failed to mark messages as read" });
+  }
+});
+
 
 module.exports = router;
