@@ -41,4 +41,19 @@ router.get("/users", async (req, res) => {
   }
 });
 
+// DELETE /api/users/:userId
+router.delete("/users/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await User.deleteOne({ userId });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json({ success: true, deletedCount: result.deletedCount });
+  } catch (err) {
+    console.error("Error deleting user:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 module.exports = router;
