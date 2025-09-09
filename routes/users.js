@@ -45,11 +45,16 @@ router.get("/users", async (req, res) => {
 router.delete("/users/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const result = await User.deleteOne({ userId });
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ error: "User not found" });
+    const user = await User.findOne({ userId });
+    console.log({ user, userId });
+    if (user) {
+      const result = await User.deleteOne({ userId });
+      res
+        .status(200)
+        .json({ success: true, deletedCount: result.deletedCount });
+    } else {
+      res.status(200).json({ success: true, deletedCount: 0 });
     }
-    res.status(200).json({ success: true, deletedCount: result.deletedCount });
   } catch (err) {
     console.error("Error deleting user:", err);
     res.status(500).json({ error: "Internal server error" });
