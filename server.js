@@ -154,19 +154,17 @@ app.post("/webhook", async (req, res) => {
 
     let itsBeenAWhile = false;
 
-    // console.log({ userId, userMessage, lastMessage, itsBeenAWhile });
-
     if (lastMessage.length > 0) {
-      if (lastMessage[0].agent) {
-        const lastMessageTime = new Date(lastMessage[0].timestamp);
-        const currentTime = new Date();
-        const timeDifference = currentTime - lastMessageTime;
-        const aWhile = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
-        itsBeenAWhile = timeDifference > aWhile;
-      } else {
-        itsBeenAWhile = true;
-      }
+      const lastMessageTime = new Date(lastMessage[0].timestamp);
+      const currentTime = new Date();
+      const timeDifference = currentTime - lastMessageTime;
+      const aWhile = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+      itsBeenAWhile = timeDifference > aWhile;
+    } else {
+      itsBeenAWhile = true;
     }
+
+    console.log({ userId, userMessage, lastMessage, itsBeenAWhile });
 
     await Message.create({
       userId: formattedUserId,
@@ -261,6 +259,7 @@ app.post("/webhook", async (req, res) => {
       });
     } else if (
       lastMessage &&
+      lastMessage.length > 0 &&
       (lastMessage[0].agent === "auto-ai" || lastMessage[0].agent === "openai")
     ) {
       if (!userMessage || typeof userMessage !== "string") {
