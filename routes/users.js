@@ -1,6 +1,7 @@
 const express = require("express");
 
 const User = require("../models/User");
+const Message = require("../models/Message");
 
 const router = express.Router();
 
@@ -45,11 +46,16 @@ router.get("/users", async (req, res) => {
 router.delete("/users/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const result = await User.deleteOne({ userId });
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ error: "User not found" });
+
+    // Delete all messages for this userId
+    const messageDelete = await Message.deleteMany({ userId });
+
+    // Delete the user if they exist (saved in User collection)
+    const userDelete = await User.deleteOne({ userId });
+
+    if (messageDelete.acknowledged && userDelete.acknowledged) {
+      res.status(200).json({ success: true });
     }
-    res.status(200).json({ success: true, deletedCount: result.deletedCount });
   } catch (err) {
     console.error("Error deleting user:", err);
     res.status(500).json({ error: "Internal server error" });
