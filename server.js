@@ -164,8 +164,6 @@ app.post("/webhook", async (req, res) => {
       itsBeenAWhile = true;
     }
 
-    console.log({ userId, userMessage, lastMessage, itsBeenAWhile });
-
     await Message.create({
       userId: formattedUserId,
       content: userMessage,
