@@ -1,6 +1,7 @@
 const express = require("express");
 
 const User = require("../models/User");
+const Message = require("../models/Message");
 
 const router = express.Router();
 
@@ -45,15 +46,15 @@ router.get("/users", async (req, res) => {
 router.delete("/users/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const user = await User.findOne({ userId });
-    console.log({ user, userId });
-    if (user) {
-      const result = await User.deleteOne({ userId });
-      res
-        .status(200)
-        .json({ success: true, deletedCount: result.deletedCount });
-    } else {
-      res.status(200).json({ success: true, deletedCount: 0 });
+
+    // Delete all messages for this userId
+    const messageDelete = await Message.deleteMany({ userId });
+
+    // Delete the user if they exist (saved in User collection)
+    const userDelete = await User.deleteOne({ userId });
+
+    if (messageDelete.acknowledged && userDelete.acknowledged) {
+      res.status(200).json({ success: true });
     }
   } catch (err) {
     console.error("Error deleting user:", err);
