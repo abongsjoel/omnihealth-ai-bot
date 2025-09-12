@@ -204,7 +204,8 @@ app.post("/webhook", async (req, res) => {
       let userName = "";
       const user = await User.findOne({ userId: formattedUserId });
       if (user && user.userName) {
-        userName = `, ${user.userName}`;
+        // Use only the first name
+        userName = `, ${user.userName.split(" ")[0]}`;
       }
 
       const message = `Hi 👋${userName}, Welcome to OmniHealth, your personal health assistant. \n\nWould you like to talk to an AI 🤖 or a human 👩🏽‍⚕️?\n\nPlease reply with *AI* or *Human*.`;
