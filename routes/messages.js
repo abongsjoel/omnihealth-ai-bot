@@ -11,6 +11,36 @@ router.get("/user-ids", async (req, res) => {
   res.json(userIds);
 });
 
+router.get("/messages/last-messages", async (req, res) => {
+  try {
+    const lastMessages = await Message.aggregate([
+      {
+        $sort: { timestamp: -1 }, // Sort by timestamp descending
+      },
+      {
+        $group: {
+          _id: "$userId",
+          lastMessage: { $first: "$$ROOT" }, // Get the first document in each group (which is the latest due to sorting)
+        },
+      },
+      {
+        $replaceRoot: { newRoot: "$lastMessage" }, // Replace root to have a flat structure
+      },
+      {
+        $sort: { timestamp: -1 }, // Optional: Sort the final results by timestamp descending
+      },
+    ]);
+
+    console.log({ lastMessages });
+
+    res.json(lastMessages);
+  } catch (error) {
+    console.error("Error fetching last messages:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/messages/:userId
 router.get("/messages/:userId", async (req, res) => {
   const messages = await Message.find({ userId: req.params.userId })
     .sort({ timestamp: 1 })
@@ -144,6 +174,5 @@ router.patch("/messages/:userId/mark-read", async (req, res) => {
     res.status(500).json({ error: "Failed to mark messages as read" });
   }
 });
-
 
 module.exports = router;
