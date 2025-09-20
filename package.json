@@ -19,7 +19,9 @@
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "mongoose": "^8.15.0",
-    "nodemon": "^3.1.10",
     "twilio": "^5.8.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
