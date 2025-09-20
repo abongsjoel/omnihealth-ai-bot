@@ -31,8 +31,6 @@ router.get("/messages/last-messages", async (req, res) => {
       },
     ]);
 
-    console.log({ lastMessages });
-
     res.json(lastMessages);
   } catch (error) {
     console.error("Error fetching last messages:", error);
