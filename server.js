@@ -49,6 +49,10 @@ app.get("/", (req, res) => {
   res.send("WhatsApp bot is running ✅");
 });
 
+app.use((req, res, next) => {
+  res.status(404).json({ error: "Route Not Found" });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Bot server running on port ${PORT}`);
