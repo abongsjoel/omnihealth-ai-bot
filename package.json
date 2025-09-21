@@ -19,6 +19,8 @@
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "mongoose": "^8.15.0",
+    "nodemailer": "^7.0.6",
+    "nodemailer-sendgrid-transport": "^0.2.0",
     "twilio": "^5.8.0"
   },
   "devDependencies": {
