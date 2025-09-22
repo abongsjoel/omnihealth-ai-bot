@@ -1,8 +1,4 @@
 const express = require("express");
-const axios = require("axios");
-
-const Message = require("../models/Message");
-const User = require("../models/User");
 
 const chatController = require("../controllers/chat");
 
