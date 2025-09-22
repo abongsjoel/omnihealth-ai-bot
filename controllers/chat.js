@@ -1,10 +1,11 @@
-const asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
 const axios = require("axios");
 
 const Message = require("../models/Message");
 const User = require("../models/User");
+
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
 
 exports.postAi = asyncHandler(async (req, res) => {
   const userId = req.body.userId || "anonymous";
