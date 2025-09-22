@@ -1,8 +1,18 @@
 const express = require("express");
+const nodemailer = require("nodemailer");
+const sendgridTransport = require("nodemailer-sendgrid-transport");
 
 const CareTeam = require("../models/CareTeam");
 
 const router = express.Router();
+
+const transporter = nodemailer.createTransport(
+  sendgridTransport({
+    auth: {
+      api_key: process.env.SENDGRID_API_KEY,
+    },
+  })
+);
 
 // POST /api/careteam/signup
 router.post("/careteam/signup", async (req, res) => {
@@ -31,6 +41,22 @@ router.post("/careteam/signup", async (req, res) => {
       speciality,
     });
     await careTeamMember.save();
+
+    transporter.sendMail(
+      {
+        to: email,
+        from: "abongsjoel@gmail.com",
+        subject: "Welcome to OmniHealth Care Team",
+        text: `Hi ${fullName},\n\nThank you for joining the OmniHealth Care Team! We're excited to have you on board.\n\nBest,\nThe OmniHealth Team`,
+      },
+      (err, info) => {
+        if (err) {
+          console.error("SendGrid error:", err);
+        } else {
+          console.log("SendGrid response:", info);
+        }
+      }
+    );
 
     res.status(201).json({
       message: "CareTeam member created successfully",
