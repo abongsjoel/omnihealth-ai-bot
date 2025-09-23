@@ -38,7 +38,7 @@ exports.getLastMessages = asyncHandler(async (req, res) => {
 exports.getMessagesByUserId = asyncHandler(async (req, res) => {
   const messages = await Message.find({ userId: req.params.userId })
     .sort({ timestamp: 1 })
-    .select("role content agent timestamp read -_id");
+    .select("role content agent timestamp createdAt updatedAt read -_id");
   res.json(messages);
 });
 
