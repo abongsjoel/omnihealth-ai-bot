@@ -19,10 +19,6 @@ router.post(
 router.get("/users", usersController.getUsers);
 
 // DELETE /api/users/:userId
-router.delete(
-  "/users/:userId",
-  [body("userId").trim().notEmpty().withMessage("UserID is required")],
-  usersController.deleteUser
-);
+router.delete("/users/:userId", usersController.deleteUser);
 
 module.exports = router;
