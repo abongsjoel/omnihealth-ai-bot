@@ -3,10 +3,7 @@ const sendgridTransport = require("nodemailer-sendgrid-transport");
 const { validationResult } = require("express-validator");
 
 const CareTeam = require("../models/CareTeam");
-
-const asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
+const { asyncHandler } = require("../utils/utils");
 
 const transporter = nodemailer.createTransport(
   sendgridTransport({

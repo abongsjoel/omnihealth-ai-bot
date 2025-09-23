@@ -2,10 +2,7 @@ const { validationResult } = require("express-validator");
 
 const User = require("../models/User");
 const Message = require("../models/Message");
-
-const asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
+const { asyncHandler } = require("../utils/utils");
 
 exports.postAssignName = asyncHandler(async (req, res) => {
   const errors = validationResult(req);

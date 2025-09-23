@@ -1,5 +1,7 @@
 const Survey = require("../models/Survey");
 
+const { asyncHandler } = require("../utils/utils");
+
 const SURVEY_FIELDS = [
   "age",
   "gender",
@@ -15,10 +17,6 @@ const SURVEY_FIELDS = [
   "receive_care",
   "interested",
 ];
-
-const asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
 
 exports.postSurvey = asyncHandler(async (req, res) => {
   const userId = req.body.userId || "anonymous";

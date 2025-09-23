@@ -1,10 +1,7 @@
 const { validationResult } = require("express-validator");
 
-const asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
-
 const Message = require("../models/Message");
+const { asyncHandler } = require("../utils/utils");
 
 exports.getUserIds = asyncHandler(async (req, res) => {
   const userIds = await Message.distinct("userId");
