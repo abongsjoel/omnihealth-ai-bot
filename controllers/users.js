@@ -1,18 +1,18 @@
+const { validationResult } = require("express-validator");
+
 const User = require("../models/User");
 const Message = require("../models/Message");
-
-const asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
+const { asyncHandler } = require("../utils/utils");
 
 exports.postAssignName = asyncHandler(async (req, res) => {
-  const { userName, userId } = req.body;
-
-  if (!userName || !userId) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
     return res
-      .status(400)
-      .json({ error: "Both userName and userId are required TJ" });
+      .status(422)
+      .json({ message: "Validation failed", errors: errors.array() });
   }
+
+  const { userName, userId } = req.body;
 
   try {
     const existing = await User.findOneAndUpdate(
@@ -41,6 +41,13 @@ exports.getUsers = asyncHandler(async (req, res) => {
 });
 
 exports.deleteUser = asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(422)
+      .json({ message: "Validation failed", errors: errors.array() });
+  }
+
   try {
     const { userId } = req.params;
 

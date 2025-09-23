@@ -1,19 +1,20 @@
 const axios = require("axios");
+const { validationResult } = require("express-validator");
 
 const Message = require("../models/Message");
 const User = require("../models/User");
-
-const asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
+const { asyncHandler } = require("../utils/utils");
 
 exports.postAi = asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(422)
+      .json({ message: "Validation failed", errors: errors.array() });
+  }
+
   const userId = req.body.userId || "anonymous";
   const userMessage = req.body.message;
-
-  if (!userMessage || typeof userMessage !== "string") {
-    return res.status(400).json({ reply: "Invalid input." });
-  }
 
   const curUserMessage = { role: "user", content: userMessage };
 

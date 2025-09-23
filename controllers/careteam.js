@@ -1,11 +1,9 @@
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
+const { validationResult } = require("express-validator");
 
 const CareTeam = require("../models/CareTeam");
-
-const asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
+const { asyncHandler } = require("../utils/utils");
 
 const transporter = nodemailer.createTransport(
   sendgridTransport({
@@ -16,14 +14,16 @@ const transporter = nodemailer.createTransport(
 );
 
 exports.postSignup = asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(422)
+      .json({ message: "Validation failed", errors: errors.array() });
+  }
+
   try {
     const { fullName, displayName, speciality, email, phone, password } =
       req.body;
-
-    // Validate required fields
-    if (!fullName || !email || !phone || !password || !speciality) {
-      return res.status(400).json({ error: "All fields are required." });
-    }
 
     // Check if email is already in use
     const existingUser = await CareTeam.findOne({ email });
@@ -76,10 +76,14 @@ exports.postSignup = asyncHandler(async (req, res) => {
 });
 
 exports.postLogin = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(422)
+      .json({ message: "Validation failed", errors: errors.array() });
+  }
 
-  if (!email || !password)
-    return res.status(400).json({ error: "Email and password required." });
+  const { email, password } = req.body;
 
   try {
     const teamMember = await CareTeam.findOne({ email });
@@ -104,7 +108,7 @@ exports.postLogin = asyncHandler(async (req, res) => {
   }
 });
 
-exports.postCareTeam = asyncHandler(async (req, res) => {
+exports.getCareTeamMembers = asyncHandler(async (req, res) => {
   try {
     const members = await CareTeam.find({}, "-password") // exclude passwords
       .sort({ createdAt: -1 }); // optional: sort newest first
