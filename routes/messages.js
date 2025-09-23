@@ -43,10 +43,6 @@ router.post(
 );
 
 // Mark messages as read
-router.patch(
-  "/messages/:userId/mark-read",
-  [body("userId").trim().notEmpty().withMessage("UserID is required")],
-  messagesController.patchMarkRead
-);
+router.patch("/messages/:userId/mark-read", messagesController.patchMarkRead);
 
 module.exports = router;
