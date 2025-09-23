@@ -1,3 +1,5 @@
+const { validationResult } = require("express-validator");
+
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
@@ -45,13 +47,14 @@ exports.getMessagesByUserId = asyncHandler(async (req, res) => {
 
 // Sent using Twilio API
 exports.postSendMessageTwilio = asyncHandler(async (req, res) => {
-  const { to, message, agent } = req.body;
-
-  if (!to || !message || !agent) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
     return res
-      .status(400)
-      .json({ error: "Missing 'to', 'message', or 'agent'" });
+      .status(422)
+      .json({ message: "Validation failed", errors: errors.array() });
   }
+
+  const { to, message, agent } = req.body;
 
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -105,14 +108,14 @@ exports.postSendMessageTwilio = asyncHandler(async (req, res) => {
 
 // Sent using Infobip API
 // exports.postSendMessageInfobip = asyncHandler(async (req, res) => {
-//   const { to, message, agent } = req.body;
-
-//   if (!to || !message || !agent) {
+//   const errors = validationResult(req);
+//   if (!errors.isEmpty()) {
 //     return res
-//       .status(400)
-//       .json({ error: "Missing 'to' or 'message' or 'agent'" });
+//       .status(422)
+//       .json({ message: "Validation failed", errors: errors.array() });
 //   }
 
+//   const { to, message, agent } = req.body;
 //   try {
 //     // 1. Send to Infobip
 //     await axios.post(
@@ -152,6 +155,13 @@ exports.postSendMessageTwilio = asyncHandler(async (req, res) => {
 // });
 
 exports.patchMarkRead = asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(422)
+      .json({ message: "Validation failed", errors: errors.array() });
+  }
+
   try {
     const { userId } = req.params;
 
