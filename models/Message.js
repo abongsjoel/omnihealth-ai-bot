@@ -1,13 +1,16 @@
 const mongoose = require("mongoose");
 
-const MessageSchema = new mongoose.Schema({
-  userId: String,
-  content: String,
-  agent: String,
-  role: { type: String, enum: ["user", "assistant"] },
-  read: { type: Boolean, default: false },
-  timestamp: { type: Date, default: Date.now },
-});
+const MessageSchema = new mongoose.Schema(
+  {
+    userId: String,
+    content: String,
+    agent: String,
+    role: { type: String, enum: ["user", "assistant"] },
+    read: { type: Boolean, default: false },
+    timestamp: { type: Date, default: Date.now },
+  },
+  { timestamps: true }
+);
 
 MessageSchema.pre("save", function (next) {
   if (this.role === "assistant" && !this.agent) {
