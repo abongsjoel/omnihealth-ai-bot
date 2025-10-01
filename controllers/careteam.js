@@ -1,6 +1,7 @@
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 const { validationResult } = require("express-validator");
+const jwt = require("jsonwebtoken");
 
 const CareTeam = require("../models/CareTeam");
 const { asyncHandler } = require("../utils/utils");
@@ -93,8 +94,14 @@ exports.login = asyncHandler(async (req, res) => {
     const isMatch = await teamMember.comparePassword(password);
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
-    res.status(200).json({
-      _id: teamMember._id,
+    const token = jwt.sign(
+      { id: teamMember._id, email: teamMember.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    const loggedInTeamMember = {
+      teamMemberId: teamMember._id.toString(),
       fullName: teamMember.fullName,
       displayName: teamMember.displayName,
       speciality: teamMember.speciality,
@@ -102,7 +109,20 @@ exports.login = asyncHandler(async (req, res) => {
       phone: teamMember.phone,
       createdAt: teamMember.createdAt,
       updatedAt: teamMember.updatedAt,
-    });
+    };
+
+    res.status(200).json({ token, loggedInTeamMember });
+
+    // res.status(200).json({
+    //   _id: teamMember._id,
+    //   fullName: teamMember.fullName,
+    //   displayName: teamMember.displayName,
+    //   speciality: teamMember.speciality,
+    //   email: teamMember.email,
+    //   phone: teamMember.phone,
+    //   createdAt: teamMember.createdAt,
+    //   updatedAt: teamMember.updatedAt,
+    // });
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }
