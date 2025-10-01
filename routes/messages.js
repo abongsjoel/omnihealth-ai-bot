@@ -1,5 +1,6 @@
 const express = require("express");
 const { body } = require("express-validator");
+const isAuth = require("../middleware/is-auth");
 
 const messagesController = require("../controllers/messages");
 
@@ -12,7 +13,7 @@ router.get("/user-ids", messagesController.getUserIds);
 router.get("/messages/last-messages", messagesController.getLastMessages);
 
 // GET /api/messages/:userId
-router.get("/messages/:userId", messagesController.getMessagesByUserId);
+router.get("/messages/:userId", isAuth, messagesController.getMessagesByUserId);
 
 // Sent using Infobip API
 // router.post(
