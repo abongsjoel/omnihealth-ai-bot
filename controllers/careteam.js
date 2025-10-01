@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport(
   })
 );
 
-exports.postSignup = asyncHandler(async (req, res) => {
+exports.signup = asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res
@@ -75,7 +75,7 @@ exports.postSignup = asyncHandler(async (req, res) => {
   }
 });
 
-exports.postLogin = asyncHandler(async (req, res) => {
+exports.login = asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res
