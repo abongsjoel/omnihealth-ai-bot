@@ -100,8 +100,9 @@ exports.login = asyncHandler(async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    const loggedInTeamMember = {
-      teamMemberId: teamMember._id.toString(),
+    res.status(200).json({
+      token,
+      _id: teamMember._id,
       fullName: teamMember.fullName,
       displayName: teamMember.displayName,
       speciality: teamMember.speciality,
@@ -109,20 +110,7 @@ exports.login = asyncHandler(async (req, res) => {
       phone: teamMember.phone,
       createdAt: teamMember.createdAt,
       updatedAt: teamMember.updatedAt,
-    };
-
-    res.status(200).json({ token, loggedInTeamMember });
-
-    // res.status(200).json({
-    //   _id: teamMember._id,
-    //   fullName: teamMember.fullName,
-    //   displayName: teamMember.displayName,
-    //   speciality: teamMember.speciality,
-    //   email: teamMember.email,
-    //   phone: teamMember.phone,
-    //   createdAt: teamMember.createdAt,
-    //   updatedAt: teamMember.updatedAt,
-    // });
+    });
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }
