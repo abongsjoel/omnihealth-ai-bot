@@ -39,7 +39,7 @@ router.post(
       .notEmpty()
       .withMessage("Invalid speciality"),
   ],
-  careteamController.postSignup
+  careteamController.signup
 );
 
 // POST /api/care-team/login
@@ -53,7 +53,7 @@ router.post(
       .withMessage("Invalid email address"),
     body("password").trim().notEmpty().withMessage("Password is required"),
   ],
-  careteamController.postLogin
+  careteamController.login
 );
 
 // GET /api/careteam

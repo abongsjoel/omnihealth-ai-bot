@@ -1,5 +1,6 @@
 const express = require("express");
 const { body } = require("express-validator");
+const isAuth = require("../middleware/is-auth");
 
 const usersController = require("../controllers/users");
 
@@ -8,6 +9,7 @@ const router = express.Router();
 // POST /api/users/assign-name
 router.post(
   "/users/assign-name",
+  isAuth,
   [
     body("userId").trim().notEmpty().withMessage("UserID is required"),
     body("userName").trim().notEmpty().withMessage("UserName is required"),
@@ -16,9 +18,9 @@ router.post(
 );
 
 // GET /api/users
-router.get("/users", usersController.getUsers);
+router.get("/users", isAuth, usersController.getUsers);
 
 // DELETE /api/users/:userId
-router.delete("/users/:userId", usersController.deleteUser);
+router.delete("/users/:userId", isAuth, usersController.deleteUser);
 
 module.exports = router;

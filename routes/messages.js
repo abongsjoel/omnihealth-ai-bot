@@ -1,18 +1,23 @@
 const express = require("express");
 const { body } = require("express-validator");
+const isAuth = require("../middleware/is-auth");
 
 const messagesController = require("../controllers/messages");
 
 const router = express.Router();
 
 // GET /api/users
-router.get("/user-ids", messagesController.getUserIds);
+router.get("/user-ids", isAuth, messagesController.getUserIds);
 
 // GET /api/messages/last-messages
-router.get("/messages/last-messages", messagesController.getLastMessages);
+router.get(
+  "/messages/last-messages",
+  isAuth,
+  messagesController.getLastMessages
+);
 
 // GET /api/messages/:userId
-router.get("/messages/:userId", messagesController.getMessagesByUserId);
+router.get("/messages/:userId", isAuth, messagesController.getMessagesByUserId);
 
 // Sent using Infobip API
 // router.post(
@@ -31,6 +36,7 @@ router.get("/messages/:userId", messagesController.getMessagesByUserId);
 // Sent using Twilio API
 router.post(
   "/send-message",
+  isAuth,
   [
     body("to").trim().notEmpty().withMessage("Recipient number is required"),
     body("message")
@@ -43,6 +49,10 @@ router.post(
 );
 
 // Mark messages as read
-router.patch("/messages/:userId/mark-read", messagesController.patchMarkRead);
+router.patch(
+  "/messages/:userId/mark-read",
+  isAuth,
+  messagesController.patchMarkRead
+);
 
 module.exports = router;

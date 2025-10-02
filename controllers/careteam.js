@@ -1,6 +1,7 @@
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 const { validationResult } = require("express-validator");
+const jwt = require("jsonwebtoken");
 
 const CareTeam = require("../models/CareTeam");
 const { asyncHandler } = require("../utils/utils");
@@ -13,7 +14,7 @@ const transporter = nodemailer.createTransport(
   })
 );
 
-exports.postSignup = asyncHandler(async (req, res) => {
+exports.signup = asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res
@@ -75,7 +76,7 @@ exports.postSignup = asyncHandler(async (req, res) => {
   }
 });
 
-exports.postLogin = asyncHandler(async (req, res) => {
+exports.login = asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res
@@ -93,7 +94,14 @@ exports.postLogin = asyncHandler(async (req, res) => {
     const isMatch = await teamMember.comparePassword(password);
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
+    const token = jwt.sign(
+      { id: teamMember._id, email: teamMember.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "30d" }
+    );
+
     res.status(200).json({
+      token,
       _id: teamMember._id,
       fullName: teamMember.fullName,
       displayName: teamMember.displayName,
