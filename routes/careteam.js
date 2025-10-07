@@ -43,18 +43,7 @@ router.post(
 );
 
 // POST /api/care-team/login
-router.post(
-  "/careteam/login",
-  [
-    body("email")
-      .trim()
-      .isEmail()
-      .notEmpty()
-      .withMessage("Invalid email address"),
-    body("password").trim().notEmpty().withMessage("Password is required"),
-  ],
-  careteamController.login
-);
+router.post("/careteam/login", careteamController.login);
 
 // GET /api/careteam
 router.get("/careteam", careteamController.getCareTeamMembers);
